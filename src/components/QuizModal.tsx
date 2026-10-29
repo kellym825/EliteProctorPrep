@@ -22,29 +22,23 @@ export const QuizModal: React.FC<QuizModalProps> = ({
 
   if (!subject || !exam) return null;
 
-  // Find questions for subject or fall back to general sample questions
-  const questionsList: PracticeQuestion[] =
-    SAMPLE_PRACTICE_QUESTIONS[subject.name] ||
-    SAMPLE_PRACTICE_QUESTIONS['Pharmacology'] ||
-    [];
+  // Find questions for subject or search by domain keyword
+  const matchedKey =
+    Object.keys(SAMPLE_PRACTICE_QUESTIONS).find((key) =>
+      subject.name.toLowerCase().includes(key.toLowerCase()) ||
+      key.toLowerCase().includes(subject.name.toLowerCase())
+    ) ||
+    (subject.name.toLowerCase().includes('pharmac') ? 'Pharmacology' : null) ||
+    (subject.name.toLowerCase().includes('anatom') ? 'Anatomy & Physiology' : null) ||
+    (subject.name.toLowerCase().includes('safe') || subject.name.toLowerCase().includes('care') || subject.name.toLowerCase().includes('delegat') ? 'Safe & Effective Care Environment' : null) ||
+    (subject.name.toLowerCase().includes('psych') || subject.name.toLowerCase().includes('mental') ? 'Psychosocial Integrity & Mental Health' : null) ||
+    (subject.name.toLowerCase().includes('math') || subject.name.toLowerCase().includes('dosage') ? 'Mathematics & Dosage Fractions' : null) ||
+    'Physiological Integrity & Complex Care';
 
-  const currentQ = questionsList[questionIndex] || {
-    id: 'gen-1',
-    subject: subject.name,
-    exam: exam.name,
-    scenario: `A nursing student is reviewing core clinical concepts for ${subject.name} on the ${exam.name}.`,
-    question: `Which clinical nursing assessment is the highest priority for evaluating patient stabilization in ${subject.name}?`,
-    options: [
-      { id: 'A', text: 'Obtaining a full baseline metabolic profile within 2 hours.' },
-      { id: 'B', text: 'Assessing airway patency, breathing quality, and cardiovascular perfusion.' },
-      { id: 'C', text: 'Documenting secondary subjective discomfort on a 1-to-10 numerical scale.' },
-      { id: 'D', text: 'Scheduling a routine follow-up radiological study after morning rounds.' },
-    ],
-    correctOptionId: 'B',
-    rationale: 'In all clinical nursing scenarios (NCLEX, ATI, HESI), Priority Questioning follows the ABCs (Airway, Breathing, Circulation) or Maslow Hierarchy of Needs before psychological or administrative tasks.',
-    whyWrong: 'Options A, C, and D are secondary interventions that must never delay immediate life-sustaining airway and circulatory assessment.',
-    clinicalPearl: 'When in doubt: Assess before you act, and always protect ABCs first!',
-  };
+  const questionsList: PracticeQuestion[] =
+    SAMPLE_PRACTICE_QUESTIONS[matchedKey] || SAMPLE_PRACTICE_QUESTIONS['Pharmacology'];
+
+  const currentQ = questionsList[questionIndex] || questionsList[0];
 
   const handleSelectOption = (optId: string) => {
     if (submitted) return;
@@ -81,21 +75,32 @@ export const QuizModal: React.FC<QuizModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-stone-100">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#c4553a] bg-[#c4553a]/10 px-2.5 py-0.5 rounded-full">
-                {exam.name}
-              </span>
-              <span className="text-xs text-stone-500 font-medium">{subject.name}</span>
+          <div className="flex items-center gap-3">
+            {subject.image && (
+              <img
+                src={subject.image}
+                alt={subject.name}
+                width="48"
+                height="48"
+                className="w-12 h-12 rounded-xl object-cover border border-stone-200 shrink-0 shadow-sm"
+              />
+            )}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#c4553a] bg-[#c4553a]/10 px-2.5 py-0.5 rounded-full">
+                  {exam.name}
+                </span>
+                <span className="text-xs text-stone-500 font-medium truncate max-w-[200px] sm:max-w-xs">{subject.name}</span>
+              </div>
+              <h3 className="text-base sm:text-lg font-bold text-stone-900 mt-0.5">
+                Practice Question ({questionIndex + 1} of {Math.max(questionsList.length, 1)})
+              </h3>
             </div>
-            <h3 className="text-lg font-bold text-stone-900 mt-1">
-              Practice Question ({questionIndex + 1} of {Math.max(questionsList.length, 1)})
-            </h3>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0"
           >
             <X className="h-5 w-5" />
           </button>
@@ -211,6 +216,16 @@ export const QuizModal: React.FC<QuizModalProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Session Score Summary when finishing all sample questions */}
+            {questionIndex + 1 === questionsList.length && (
+              <div className="p-3 bg-stone-100/90 rounded-xl text-xs flex items-center justify-between text-stone-700 font-medium">
+                <span>Free Diagnostic Sample Completed</span>
+                <span className="font-bold text-[#c4553a]">
+                  Score: {score} / {questionsList.length} ({Math.round((score / questionsList.length) * 100)}%)
+                </span>
+              </div>
+            )}
 
             {/* Actions: Next Question or Unlock Full QBank */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">

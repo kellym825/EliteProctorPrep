@@ -8,17 +8,6 @@ import {
   Stethoscope,
   Search,
   Sparkles,
-  HeartPulse,
-  ShieldCheck,
-  Activity,
-  Brain,
-  Pill,
-  Microscope,
-  Calculator,
-  Baby,
-  FlaskConical,
-  FileText,
-  ClipboardList,
   CheckCircle2,
 } from 'lucide-react';
 import { EXAM_TRACKS, ExamTrack, ExamSubject } from '../data/examsData';
@@ -56,67 +45,6 @@ export const ExamLibrary: React.FC<ExamLibraryProps> = ({ onSelectSubject }) => 
   const filteredSubjects = activeExam.subjects.filter((sub) =>
     sub.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
   );
-
-  const getSubjectVisual = (iconType: string) => {
-    switch (iconType) {
-      case 'heart':
-        return {
-          icon: <HeartPulse className="h-5 w-5 text-rose-600" />,
-          bg: 'bg-rose-50 border-rose-200/70',
-        };
-      case 'shield':
-        return {
-          icon: <ShieldCheck className="h-5 w-5 text-emerald-700" />,
-          bg: 'bg-emerald-50 border-emerald-200/70',
-        };
-      case 'activity':
-        return {
-          icon: <Activity className="h-5 w-5 text-sky-600" />,
-          bg: 'bg-sky-50 border-sky-200/70',
-        };
-      case 'brain':
-        return {
-          icon: <Brain className="h-5 w-5 text-purple-600" />,
-          bg: 'bg-purple-50 border-purple-200/70',
-        };
-      case 'pill':
-        return {
-          icon: <Pill className="h-5 w-5 text-amber-600" />,
-          bg: 'bg-amber-50 border-amber-200/70',
-        };
-      case 'microscope':
-        return {
-          icon: <Microscope className="h-5 w-5 text-teal-600" />,
-          bg: 'bg-teal-50 border-teal-200/70',
-        };
-      case 'calculator':
-        return {
-          icon: <Calculator className="h-5 w-5 text-indigo-600" />,
-          bg: 'bg-indigo-50 border-indigo-200/70',
-        };
-      case 'baby':
-        return {
-          icon: <Baby className="h-5 w-5 text-pink-600" />,
-          bg: 'bg-pink-50 border-pink-200/70',
-        };
-      case 'flask':
-        return {
-          icon: <FlaskConical className="h-5 w-5 text-cyan-600" />,
-          bg: 'bg-cyan-50 border-cyan-200/70',
-        };
-      case 'clipboard':
-        return {
-          icon: <ClipboardList className="h-5 w-5 text-amber-700" />,
-          bg: 'bg-amber-50 border-amber-200/70',
-        };
-      case 'file-text':
-      default:
-        return {
-          icon: <FileText className="h-5 w-5 text-[#2d5a4a]" />,
-          bg: 'bg-stone-100 border-stone-200/70',
-        };
-    }
-  };
 
   const getExamCategoryBadge = (category: string) => {
     switch (category) {
@@ -337,35 +265,45 @@ export const ExamLibrary: React.FC<ExamLibraryProps> = ({ onSelectSubject }) => 
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    {filteredSubjects.map((sub, idx) => {
-                      const visual = getSubjectVisual(sub.iconType);
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => onSelectSubject(sub, activeExam)}
-                          className="group flex items-center gap-3.5 p-3.5 rounded-xl border border-stone-200 bg-white hover:border-[#c4553a]/60 hover:shadow-md hover:shadow-stone-200/50 transition-all cursor-pointer text-left w-full"
-                        >
-                          <div className={`w-11 h-11 rounded-xl flex items-center justify-center border shrink-0 group-hover:scale-105 transition-transform ${visual.bg}`}>
-                            {visual.icon}
+                    {filteredSubjects.map((sub, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => onSelectSubject(sub, activeExam)}
+                        className="group flex items-center gap-3.5 p-3 rounded-2xl border border-stone-200 bg-white hover:border-[#c4553a]/60 hover:shadow-lg hover:shadow-stone-200/60 transition-all duration-200 cursor-pointer text-left w-full relative overflow-hidden"
+                      >
+                        {/* Technical Domain Image */}
+                        <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border border-stone-200 shadow-inner bg-stone-100">
+                          <img
+                            src={sub.image}
+                            alt={sub.name}
+                            loading="lazy"
+                            width="80"
+                            height="80"
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = '/assets/images/nursing_stethoscope_textbooks.jpg';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                        </div>
+
+                        <div className="flex-1 min-w-0 pr-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#2d5a4a] bg-[#2d5a4a]/10 px-2 py-0.5 rounded-md">
+                              {sub.categoryTag}
+                            </span>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#2d5a4a] bg-[#2d5a4a]/10 px-1.5 py-0.5 rounded">
-                                {sub.categoryTag}
-                              </span>
-                            </div>
-                            <p className="font-bold text-sm text-stone-900 group-hover:text-[#c4553a] transition-colors truncate mt-1">
-                              {sub.name}
-                            </p>
-                            <p className="text-xs text-stone-500 mt-0.5">
-                              {sub.meta}
-                            </p>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-[#c4553a] group-hover:translate-x-0.5 transition-all shrink-0" />
-                        </button>
-                      );
-                    })}
+                          <p className="font-bold text-sm text-stone-900 group-hover:text-[#c4553a] transition-colors truncate mt-1">
+                            {sub.name}
+                          </p>
+                          <p className="text-xs text-stone-500 mt-0.5 flex items-center gap-1">
+                            <span>{sub.meta}</span>
+                          </p>
+                        </div>
+                        <ChevronRight className="h-4 w-4 text-stone-300 group-hover:text-[#c4553a] group-hover:translate-x-1 transition-all shrink-0" />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>

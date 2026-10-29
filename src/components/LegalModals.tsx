@@ -55,7 +55,7 @@ export const LegalModals: React.FC<LegalModalsProps> = ({ type, onClose }) => {
               </ul>
               <h4 className="font-bold text-stone-900 text-base">How to Claim:</h4>
               <p>
-                Simply submit your official Candidate Performance Report (CPR) or official test score transcript to <strong>guarantee@eliteproctorprep.com</strong> within 30 days of receiving your exam results. We will process your choice of a 100% refund or an immediate free account extension within 2 business days.
+                Simply submit your official Candidate Performance Report (CPR) or official test score transcript to <a href="mailto:eliteproctorprep@gmail.com" className="text-[#c4553a] underline font-semibold">eliteproctorprep@gmail.com</a> within 30 days of receiving your exam results. We will process your choice of a 100% refund or an immediate free account extension within 2 business days.
               </p>
             </>
           )}

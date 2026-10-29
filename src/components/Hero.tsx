@@ -147,65 +147,65 @@ export const Hero: React.FC<HeroProps> = ({ onStartNow, onExploreExams }) => {
 
             {/* Readiness Card */}
             <div
-              className="np-readiness-card w-full max-w-md bg-white/10 backdrop-blur-xl border border-white/20 p-6 rounded-2xl shadow-2xl"
+              className="np-readiness-card w-full max-w-md bg-white border border-stone-200/90 p-6 rounded-2xl shadow-2xl text-stone-900"
               id="readiness-card"
               ref={cardRef}
             >
               <div className="relative">
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[#e8a838]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#c4553a]">
                     Real-Time Readiness Metrics
                   </p>
-                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-medium border border-emerald-500/30">
+                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold border border-emerald-300">
                     Live Validated
                   </span>
                 </div>
-                <p className="text-lg font-bold text-white font-serif mb-4">
+                <h2 className="text-xl font-bold text-stone-900 font-serif mb-4 tracking-tight">
                   Predictive Board Pass Analytics
-                </p>
+                </h2>
 
                 <div className="np-readiness-grid grid grid-cols-2 gap-3 mb-4">
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 shadow-xs">
                     <p className="text-xl sm:text-2xl font-extrabold text-[#c4553a] font-serif">
                       <span className="counter tabular-nums">{students.toLocaleString()}</span>+
                     </p>
-                    <p className="text-xs text-stone-300 mt-0.5">Nurses Trained</p>
+                    <p className="text-xs text-stone-600 font-medium mt-0.5">Nurses Trained</p>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-xl sm:text-2xl font-extrabold text-emerald-400 font-serif">
+                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 shadow-xs">
+                    <p className="text-xl sm:text-2xl font-extrabold text-emerald-700 font-serif">
                       <span className="counter tabular-nums">{passRate}</span>%
                     </p>
-                    <p className="text-xs text-stone-300 mt-0.5">Verified Pass Rate</p>
+                    <p className="text-xs text-stone-600 font-medium mt-0.5">Verified Pass Rate</p>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-xl sm:text-2xl font-extrabold text-[#e8a838] font-serif">
+                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 shadow-xs">
+                    <p className="text-xl sm:text-2xl font-extrabold text-amber-700 font-serif">
                       <span className="counter tabular-nums">{questions.toLocaleString()}</span>+
                     </p>
-                    <p className="text-xs text-stone-300 mt-0.5">Clinical Items</p>
+                    <p className="text-xs text-stone-600 font-medium mt-0.5">Clinical Items</p>
                   </div>
 
-                  <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-                    <p className="text-xl sm:text-2xl font-extrabold text-white font-serif flex items-center gap-1">
+                  <div className="p-3.5 rounded-xl bg-stone-50 border border-stone-200/80 shadow-xs">
+                    <p className="text-xl sm:text-2xl font-extrabold text-stone-900 font-serif flex items-center gap-1.5">
                       <span className="counter-decimal tabular-nums">{rating}</span>
-                      <Star className="np-star h-4 w-4 fill-current text-[#e8a838]" />
+                      <Star className="np-star h-4 w-4 fill-amber-500 text-amber-500" />
                     </p>
-                    <p className="text-xs text-stone-300 mt-0.5">Student Rating</p>
+                    <p className="text-xs text-stone-600 font-medium mt-0.5">Student Rating</p>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/10 text-xs">
-                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-stone-200 border border-white/10">
+                <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-stone-200 text-xs">
+                  <span className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium border border-stone-200/90 shadow-2xs">
                     NCLEX-RN &bull; PN
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-stone-200 border border-white/10">
+                  <span className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium border border-stone-200/90 shadow-2xs">
                     Next Gen NGN
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-stone-200 border border-white/10">
+                  <span className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium border border-stone-200/90 shadow-2xs">
                     ATI Comprehensive
                   </span>
-                  <span className="px-2.5 py-1 rounded-lg bg-white/10 text-stone-200 border border-white/10">
+                  <span className="px-2.5 py-1 rounded-lg bg-stone-100 text-stone-700 font-medium border border-stone-200/90 shadow-2xs">
                     HESI A2 &bull; Exit
                   </span>
                 </div>
@@ -218,10 +218,10 @@ export const Hero: React.FC<HeroProps> = ({ onStartNow, onExploreExams }) => {
         <button
           type="button"
           onClick={onExploreExams}
-          className="np-scroll-cue cursor-pointer bg-transparent border-0 mt-8 mx-auto flex items-center justify-center gap-1.5 text-stone-400 hover:text-white transition-colors text-xs"
+          className="np-scroll-cue cursor-pointer bg-transparent border-0 mt-8 mx-auto flex items-center justify-center gap-1.5 text-stone-200 hover:text-white transition-colors text-xs font-bold tracking-wider uppercase"
         >
           <span>Explore curriculum</span>
-          <ChevronsDown className="h-4 w-4 animate-bounce" />
+          <ChevronsDown className="h-4 w-4 animate-bounce text-amber-400" />
         </button>
       </div>
     </section>

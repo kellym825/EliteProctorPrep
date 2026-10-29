@@ -71,20 +71,12 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="bg-white/95 hover:bg-white px-2.5 py-1 rounded-xl shadow-sm border border-amber-300/40 transition-all flex items-center gap-2">
               <img
                 src="/assets/favicon.png"
-                alt=""
+                alt="EliteProctorPrep"
                 className="h-7 w-7 rounded-lg object-contain shrink-0"
                 width="28"
                 height="28"
               />
-              <img
-                src="/assets/logo.png"
-                alt="EliteProctorPrep"
-                className="h-6 sm:h-7 w-auto object-contain hidden xs:block"
-                width="160"
-                height="30"
-                decoding="async"
-              />
-              <span className="xs:hidden font-bold text-[#071838] text-sm tracking-tight font-serif">
+              <span className="font-bold text-[#071838] text-sm sm:text-base tracking-tight font-serif">
                 Elite<span className="text-[#c4553a]">Proctor</span>Prep
               </span>
             </div>

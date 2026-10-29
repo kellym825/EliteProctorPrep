@@ -115,23 +115,21 @@ export const Footer: React.FC<FooterProps> = ({
                 e.preventDefault();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
-              className="inline-block cursor-pointer"
+              className="inline-flex items-center gap-2 shrink-0 cursor-pointer group"
+              aria-label="EliteProctorPrep Home"
             >
-              <div className="inline-flex items-center gap-2.5 bg-white px-3 py-1.5 rounded-xl border border-amber-300/50 shadow-md">
+              {/* Clean white badge that matches the official EliteProctorPrep header logo */}
+              <div className="bg-white/95 hover:bg-white px-2.5 py-1 rounded-xl shadow-sm border border-amber-300/40 transition-all flex items-center gap-2">
                 <img
                   src="/assets/favicon.png"
-                  alt=""
-                  className="h-8 w-8 rounded-lg object-contain"
-                  width="32"
-                  height="32"
-                />
-                <img
-                  src="/assets/logo.png"
                   alt="EliteProctorPrep"
-                  className="h-7 w-auto object-contain"
-                  width="160"
-                  height="30"
+                  className="h-7 w-7 rounded-lg object-contain shrink-0"
+                  width="28"
+                  height="28"
                 />
+                <span className="font-bold text-[#071838] text-sm sm:text-base tracking-tight font-serif">
+                  Elite<span className="text-[#c4553a]">Proctor</span>Prep
+                </span>
               </div>
             </a>
 
@@ -331,6 +329,15 @@ export const Footer: React.FC<FooterProps> = ({
                 >
                   About Our Nurse Faculty
                 </button>
+              </li>
+              <li>
+                <a
+                  href="mailto:eliteproctorprep@gmail.com"
+                  className="hover:text-white transition-colors flex items-center gap-1.5 text-stone-200"
+                >
+                  <Mail className="h-3 w-3 text-[#e8a838]" />
+                  <span>eliteproctorprep@gmail.com</span>
+                </a>
               </li>
               <li>
                 <button

@@ -442,11 +442,12 @@
 
 .np-readiness-card {
     position: relative;
-    background: var(--np-parchment);
+    background: #ffffff;
+    color: #1c1917;
     border-radius: 1rem;
     padding: 1.5rem 1.75rem;
-    box-shadow: 0 24px 60px rgba(28,25,23,.28);
-    border: 1px solid rgba(255,255,255,.65);
+    box-shadow: 0 24px 60px rgba(28,25,23,.24);
+    border: 1px solid rgba(28, 25, 23, 0.1);
     overflow: hidden;
 }
 .np-readiness-grain {
@@ -484,13 +485,17 @@
 
 .np-scroll-cue {
     display: flex; flex-direction: column; align-items: center; gap: .2rem;
-    margin: .5rem auto 0; color: #1c1917; font-size: .8125rem;
+    margin: .5rem auto 0; color: rgba(255, 255, 255, 0.85); font-size: .8125rem;
     font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
     animation: npScrollBounce 1.4s ease-in-out infinite;
+    transition: color 0.2s;
+}
+.np-scroll-cue:hover {
+    color: #ffffff;
 }
 .np-scroll-cue i,
 .np-scroll-cue svg {
-    color: #1c1917;
+    color: #f59e0b;
     stroke-width: 2.5;
 }
 @keyframes npScrollBounce {

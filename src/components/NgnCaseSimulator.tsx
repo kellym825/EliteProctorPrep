@@ -91,11 +91,15 @@ export const NgnCaseSimulator: React.FC<NgnCaseSimulatorProps> = ({ onClose, onO
   const handleSubmit = () => {
     if (selectedChoices.length === 0) return;
     setIsSubmitted(true);
-    // Calculate if fully or partially correct
+    // Strict NCSBN NGN scoring logic: all correct choices must be selected, no incorrect choices
     const correctCount = selectedChoices.filter((id) =>
       currentQuestion.correctIds.includes(id)
     ).length;
-    if (correctCount === currentQuestion.correctIds.length) {
+    const isExactMatch =
+      correctCount === currentQuestion.correctIds.length &&
+      selectedChoices.length === currentQuestion.correctIds.length;
+
+    if (isExactMatch) {
       setCaseScore((prev) => prev + 1);
     }
   };
@@ -146,13 +150,18 @@ export const NgnCaseSimulator: React.FC<NgnCaseSimulatorProps> = ({ onClose, onO
               </h3>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <span className="hidden sm:inline-flex text-xs bg-amber-400/20 text-[#e8a838] border border-amber-400/30 px-3 py-1 rounded-full font-bold">
+              Score: {caseScore} / {steps.length}
+            </span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-full text-stone-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* 2-Column Split: EHR on Left, Question on Right */}
@@ -414,12 +423,40 @@ export const NgnCaseSimulator: React.FC<NgnCaseSimulatorProps> = ({ onClose, onO
 
               {/* Rationale once submitted */}
               {isSubmitted && (
-                <div className="mt-5 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs sm:text-sm text-stone-800 space-y-2 animate-in fade-in duration-200">
-                  <div className="flex items-center gap-1.5 font-bold text-amber-950 text-xs uppercase tracking-wider">
-                    <Lightbulb className="h-4 w-4 text-[#e8a838]" />
-                    NGN Clinical Decision Rationale
+                <div className="mt-5 space-y-3 animate-in fade-in duration-200">
+                  <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs sm:text-sm text-stone-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 font-bold text-amber-950 text-xs uppercase tracking-wider">
+                        <Lightbulb className="h-4 w-4 text-[#e8a838]" />
+                        NGN Clinical Decision Rationale
+                      </div>
+                      <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-200/60 text-amber-900">
+                        Phase {currentStep} of {steps.length}
+                      </span>
+                    </div>
+                    <p className="leading-relaxed">{currentQuestion.rationale}</p>
                   </div>
-                  <p className="leading-relaxed">{currentQuestion.rationale}</p>
+
+                  {currentStep === steps.length && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-[#071838] to-[#132c57] text-white border border-amber-400/30 flex items-center justify-between">
+                      <div>
+                        <div className="text-xs text-amber-300 font-bold uppercase tracking-wider">
+                          Simulation Outcome
+                        </div>
+                        <div className="text-sm sm:text-base font-bold mt-0.5">
+                          Final Score: {caseScore} of {steps.length} Clinical Decisions Mastered
+                        </div>
+                        <div className="text-xs text-stone-300 mt-0.5">
+                          {caseScore === steps.length
+                            ? 'Outstanding! Your clinical judgment matches the 98% pass readiness benchmark.'
+                            : 'Good effort! Review sepsis protocol cues and retry for 100% mastery.'}
+                        </div>
+                      </div>
+                      <div className="w-12 h-12 rounded-xl bg-amber-400/20 border border-amber-400/40 flex items-center justify-center font-bold text-amber-300 text-lg shrink-0 ml-3">
+                        {Math.round((caseScore / steps.length) * 100)}%
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

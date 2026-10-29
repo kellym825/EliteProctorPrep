@@ -269,11 +269,14 @@ export const InfoModals: React.FC<InfoModalProps> = ({ type, onClose, onOpenPlan
             )}
 
             <div className="pt-3 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500">
-              <span className="flex items-center gap-1">
-                <Mail className="h-3.5 w-3.5 text-stone-400" />
-                support@eliteproctorprep.com
-              </span>
-              <span>Response time: &lt; 2 hrs</span>
+              <a
+                href="mailto:eliteproctorprep@gmail.com"
+                className="flex items-center gap-1.5 text-stone-600 hover:text-[#c4553a] transition-colors font-medium"
+              >
+                <Mail className="h-3.5 w-3.5 text-[#c4553a]" />
+                eliteproctorprep@gmail.com
+              </a>
+              <span className="text-[10px] bg-stone-100 px-2 py-0.5 rounded-full">Response: &lt; 2 hrs</span>
             </div>
           </div>
         )}

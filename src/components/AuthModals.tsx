@@ -74,17 +74,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         ) : (
           <div>
             <div className="text-center mb-6">
-              <div className="inline-flex items-center justify-center p-2 rounded-xl bg-stone-50 border border-stone-200 shadow-sm mx-auto mb-3">
+              <div className="inline-flex items-center justify-center px-3 py-1.5 rounded-xl bg-white border border-amber-300/40 shadow-sm mx-auto mb-3 gap-2">
                 <img
                   src="/assets/favicon.png"
-                  alt=""
-                  className="h-8 w-8 rounded-lg object-contain mr-2"
-                />
-                <img
-                  src="/assets/logo.png"
                   alt="EliteProctorPrep"
-                  className="h-7 w-auto object-contain"
+                  className="h-7 w-7 rounded-lg object-contain shrink-0"
+                  width="28"
+                  height="28"
                 />
+                <span className="font-bold text-[#071838] text-sm sm:text-base tracking-tight font-serif">
+                  Elite<span className="text-[#c4553a]">Proctor</span>Prep
+                </span>
               </div>
               <h3 className="text-xl font-bold text-stone-900">
                 {mode === 'signup' ? 'Create Your Free Account' : 'Sign In to EliteProctorPrep'}
