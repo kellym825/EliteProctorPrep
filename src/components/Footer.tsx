@@ -12,6 +12,7 @@ import {
   FileText,
   Calculator,
   Pill,
+  LayoutDashboard,
 } from 'lucide-react';
 
 interface FooterProps {
@@ -26,6 +27,7 @@ interface FooterProps {
   onOpenReadinessCalculator: () => void;
   onOpenPharmaDrill: () => void;
   onOpenLegal: (type: 'terms' | 'privacy' | 'guarantee') => void;
+  onOpenDashboard?: () => void;
 }
 
 export const Footer: React.FC<FooterProps> = ({
@@ -40,6 +42,7 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenReadinessCalculator,
   onOpenPharmaDrill,
   onOpenLegal,
+  onOpenDashboard,
 }) => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
@@ -245,6 +248,18 @@ export const Footer: React.FC<FooterProps> = ({
               Interactive Tools
             </h5>
             <ul className="space-y-2.5 text-xs text-stone-300">
+              {onOpenDashboard && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={onOpenDashboard}
+                    className="flex items-center gap-1.5 hover:text-white transition-colors text-left cursor-pointer font-semibold text-emerald-400"
+                  >
+                    <LayoutDashboard className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>Candidate Study Dashboard</span>
+                  </button>
+                </li>
+              )}
               <li>
                 <button
                   type="button"

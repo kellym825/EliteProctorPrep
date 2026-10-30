@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Sparkles, Activity } from 'lucide-react';
+import { Menu, X, Sparkles, Activity, LayoutDashboard, UserCheck, LogOut, ShieldCheck } from 'lucide-react';
+import { useClerkBridge, UserButton } from '../context/ClerkAuthContext';
 
 interface HeaderProps {
   onOpenSignIn: () => void;
@@ -11,6 +12,10 @@ interface HeaderProps {
   onOpenBlog: () => void;
   onOpenNgnSimulator?: () => void;
   onOpenReadinessCalculator?: () => void;
+  loggedInUser?: string | null;
+  onOpenDashboard?: () => void;
+  onSignOut?: () => void;
+  onOpenClerkConfig?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -23,7 +28,12 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenBlog,
   onOpenNgnSimulator,
   onOpenReadinessCalculator,
+  loggedInUser,
+  onOpenDashboard,
+  onSignOut,
+  onOpenClerkConfig,
 }) => {
+  const { hasKey, targetAppId, clerkSession } = useClerkBridge();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -105,6 +115,17 @@ export const Header: React.FC<HeaderProps> = ({
               Exams
             </a>
 
+            {/* Direct Study Dashboard trigger */}
+            {onOpenDashboard && (
+              <button
+                type="button"
+                onClick={onOpenDashboard}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-400/30 transition-colors flex items-center gap-1.5 cursor-pointer ml-1 mr-1"
+              >
+                <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
+              </button>
+            )}
+
             {/* NGN Simulator direct trigger */}
             {onOpenNgnSimulator && (
               <button
@@ -165,20 +186,75 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onOpenSignIn}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors h-8 rounded-md px-3 text-xs text-white hover:bg-white/10 cursor-pointer"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={onOpenSignUp}
-              className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all h-8 rounded-md px-3 text-xs bg-[#c4553a] hover:bg-[#8b3a2f] text-white shadow-lg shadow-[#c4553a]/25 cursor-pointer"
-            >
-              Sign up
-            </button>
+            {onOpenClerkConfig && (
+              <button
+                type="button"
+                onClick={onOpenClerkConfig}
+                title={`Clerk Auth Hub (${targetAppId})`}
+                className={`inline-flex items-center gap-1.5 whitespace-nowrap font-medium transition-all h-8 rounded-lg px-2.5 text-xs border cursor-pointer ${
+                  hasKey
+                    ? 'bg-[#6c47ff]/20 hover:bg-[#6c47ff]/30 text-purple-200 border-[#6c47ff]/50 shadow-xs'
+                    : 'bg-white/5 hover:bg-white/10 text-stone-300 border-white/10'
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-[#6c47ff]" />
+                <span className="hidden sm:inline">Clerk Auth</span>
+                <span className={`w-1.5 h-1.5 rounded-full ${hasKey ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
+              </button>
+            )}
+
+            {loggedInUser ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onOpenDashboard}
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold transition-all h-8 rounded-lg px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm cursor-pointer"
+                >
+                  <LayoutDashboard className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">My Hub</span>
+                  <span className="sm:hidden">Hub</span>
+                </button>
+                {clerkSession?.isSignedIn ? (
+                  <div className="flex items-center ml-1">
+                    <UserButton />
+                  </div>
+                ) : (
+                  <div className="hidden md:flex items-center gap-1.5 bg-white/10 py-1 px-2.5 rounded-lg border border-white/10 text-xs text-white">
+                    <div className="w-5 h-5 rounded-full bg-[#c4553a] flex items-center justify-center text-[10px] font-bold text-white">
+                      {loggedInUser.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="max-w-[100px] truncate text-stone-200 text-[11px]">{loggedInUser}</span>
+                  </div>
+                )}
+                {onSignOut && (
+                  <button
+                    type="button"
+                    onClick={onSignOut}
+                    title="Sign Out"
+                    className="inline-flex items-center justify-center h-8 w-8 rounded-lg text-stone-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={onOpenSignIn}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors h-8 rounded-md px-3 text-xs text-white hover:bg-white/10 cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenSignUp}
+                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all h-8 rounded-md px-3 text-xs bg-[#c4553a] hover:bg-[#8b3a2f] text-white shadow-lg shadow-[#c4553a]/25 cursor-pointer"
+                >
+                  Sign up
+                </button>
+              </>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -222,6 +298,19 @@ export const Header: React.FC<HeaderProps> = ({
           >
             Exam Tracks
           </a>
+
+          {onOpenDashboard && (
+            <button
+              type="button"
+              className="block w-full text-left px-3 py-2.5 rounded-lg text-base font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/20 cursor-pointer flex items-center gap-2"
+              onClick={() => {
+                closeMenu();
+                onOpenDashboard();
+              }}
+            >
+              <LayoutDashboard className="h-4 w-4" /> Candidate Study Dashboard
+            </button>
+          )}
 
           {onOpenNgnSimulator && (
             <button
@@ -313,26 +402,76 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className="border-t border-white/10 my-3 pt-3 flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                closeMenu();
-                onOpenSignIn();
-              }}
-              className="block w-full py-2.5 text-center rounded-lg text-sm font-medium text-white/90 hover:bg-white/10 border border-white/10"
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                closeMenu();
-                onOpenSignUp();
-              }}
-              className="block w-full py-2.5 text-center rounded-lg text-sm font-medium bg-[#c4553a] text-white hover:bg-[#8b3a2f] shadow-md shadow-[#c4553a]/30"
-            >
-              Sign up
-            </button>
+            {loggedInUser ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    if (onOpenDashboard) onOpenDashboard();
+                  }}
+                  className="w-full py-2.5 px-4 text-center rounded-xl text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                  My Study Dashboard ({loggedInUser})
+                </button>
+                {onSignOut && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu();
+                      onSignOut();
+                    }}
+                    className="w-full py-2 text-center rounded-xl text-xs font-medium text-stone-300 hover:text-white hover:bg-white/10 border border-white/10 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    Sign Out
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    onOpenSignIn();
+                  }}
+                  className="block w-full py-2.5 text-center rounded-lg text-sm font-medium text-white/90 hover:bg-white/10 border border-white/10 cursor-pointer"
+                >
+                  Sign In
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeMenu();
+                    onOpenSignUp();
+                  }}
+                  className="block w-full py-2.5 text-center rounded-lg text-sm font-medium bg-[#c4553a] text-white hover:bg-[#8b3a2f] shadow-md shadow-[#c4553a]/30 cursor-pointer"
+                >
+                  Sign up
+                </button>
+              </>
+            )}
+
+            {onOpenClerkConfig && (
+              <button
+                type="button"
+                onClick={() => {
+                  closeMenu();
+                  onOpenClerkConfig();
+                }}
+                className="w-full mt-1 py-2 px-3 rounded-lg text-xs font-semibold bg-[#6c47ff]/15 hover:bg-[#6c47ff]/25 text-purple-200 border border-[#6c47ff]/30 flex items-center justify-between cursor-pointer transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-[#6c47ff]" />
+                  <span>Clerk Auth Hub</span>
+                </div>
+                <span className="font-mono text-[10px] text-amber-300">
+                  {targetAppId.slice(0, 11)}...
+                </span>
+              </button>
+            )}
           </div>
         </div>
       )}

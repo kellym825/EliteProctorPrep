@@ -4,9 +4,10 @@ import { ArrowRight, Library, Star, ChevronsDown, ShieldCheck, Award } from 'luc
 interface HeroProps {
   onStartNow: () => void;
   onExploreExams: () => void;
+  onOpenDashboard?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onStartNow, onExploreExams }) => {
+export const Hero: React.FC<HeroProps> = ({ onStartNow, onExploreExams, onOpenDashboard }) => {
   const [students, setStudents] = useState(0);
   const [passRate, setPassRate] = useState(0);
   const [questions, setQuestions] = useState(0);
@@ -209,6 +210,17 @@ export const Hero: React.FC<HeroProps> = ({ onStartNow, onExploreExams }) => {
                     HESI A2 &bull; Exit
                   </span>
                 </div>
+
+                {onOpenDashboard && (
+                  <button
+                    type="button"
+                    onClick={onOpenDashboard}
+                    className="mt-3.5 w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-[#06152d] to-[#0d2a54] hover:from-[#0d2a54] hover:to-[#06152d] text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer group"
+                  >
+                    <span>Open Live Candidate Dashboard & Analytics</span>
+                    <ArrowRight className="h-3.5 w-3.5 text-[#e8a838] group-hover:translate-x-1 transition-transform" />
+                  </button>
+                )}
               </div>
             </div>
           </div>

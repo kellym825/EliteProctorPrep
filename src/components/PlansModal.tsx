@@ -1,103 +1,239 @@
 import React, { useState } from 'react';
-import { X, Check, Sparkles, ShieldCheck } from 'lucide-react';
+import {
+  X,
+  Check,
+  Sparkles,
+  ShieldCheck,
+  CreditCard,
+  Lock,
+  ArrowRight,
+  ArrowLeft,
+  Tag,
+  CheckCircle2,
+  Calendar,
+  Award,
+  Zap,
+  HelpCircle
+} from 'lucide-react';
 import { EXAM_TRACKS } from '../data/examsData';
+
+export interface PurchasedPlan {
+  id: string;
+  name: string;
+  price: string;
+  exam: string;
+  period: string;
+  purchasedAt: string;
+  receiptId: string;
+}
 
 interface PlansModalProps {
   onClose: () => void;
   onOpenSignUp: () => void;
+  userEmail?: string | null;
+  onPlanPurchased?: (plan: PurchasedPlan) => void;
 }
 
-export const PlansModal: React.FC<PlansModalProps> = ({ onClose, onOpenSignUp }) => {
+export const PlansModal: React.FC<PlansModalProps> = ({
+  onClose,
+  onOpenSignUp,
+  userEmail,
+  onPlanPurchased
+}) => {
   const [selectedExam, setSelectedExam] = useState('NCLEX-RN');
-  const [selectedPlan, setSelectedPlan] = useState('90-day');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [step, setStep] = useState<'select' | 'checkout' | 'confirmation'>('select');
+  const [chosenPlanId, setChosenPlanId] = useState<string>('90-day');
+
+  // Promo code states
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount: number; type: 'fixed' | 'percent' } | null>(null);
+  const [promoError, setPromoError] = useState('');
+
+  // Payment method
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'express' | 'paypal'>('card');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvc, setCardCvc] = useState('');
+  const [cardZip, setCardZip] = useState('');
+  const [cardholderName, setCardholderName] = useState('');
+  const [studentEmail, setStudentEmail] = useState(userEmail || '');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [purchasedPlan, setPurchasedPlan] = useState<PurchasedPlan | null>(null);
 
   const plans = [
     {
       id: 'trial',
-      name: 'Free Trial',
+      name: 'Free Diagnostic Trial',
+      rawPrice: 0,
       price: '$0',
       period: 'Forever free',
-      desc: 'Perfect for testing the interface and question quality.',
+      desc: 'Ideal for taking initial benchmark test & seeing real clinical question quality.',
       features: [
         '5 sample practice questions per subject',
-        'Expert clinical rationales',
-        'Basic progress analytics',
+        'Expert clinical rationales & key points',
+        'Basic score analytics',
         'Mobile & desktop access',
       ],
       popular: false,
       cta: 'Start Free Trial',
+      badge: 'Free Forever',
     },
     {
       id: '90-day',
-      name: '90-Day Pass',
-      price: '$49',
+      name: '90-Day Standard Pass',
+      rawPrice: 89,
+      price: '$89',
       period: '3 months access',
-      desc: 'Our most popular plan for passing on the first attempt.',
+      desc: 'Our recommended plan for passing the first time with high clinical confidence.',
       features: [
-        'Unlimited access to chosen exam track',
-        'Over 30,000+ targeted practice questions',
-        'Full-length simulated timed exams',
+        'Unlimited access to all selected exam tracks',
+        '30,000+ NCLEX / TEAS / HESI practice questions',
+        'Full Next-Gen NCLEX (NGN) clinical cases & bow-ties',
+        'Computer Adaptive Testing (CAT) exam engine',
         'AI predicted pass score probability',
-        'Why others get this wrong breakdown',
-        '24/7 student chat support',
+        'Detailed rationale with pathophysiology illustrations',
+        '24/7 clinical educator ticket support',
       ],
       popular: true,
       cta: 'Get 90-Day Access',
+      badge: 'Most Popular',
     },
     {
       id: '180-day',
-      name: '180-Day Pass',
-      price: '$79',
+      name: '180-Day Comprehensive Pass',
+      rawPrice: 139,
+      price: '$139',
       period: '6 months access',
-      desc: 'Comprehensive prep with full exam pass guarantee.',
+      desc: 'Complete mastery package with 100% Pass or 100% Money-Back Guarantee.',
       features: [
-        'Everything in 90-Day Pass',
+        'Everything in 90-Day Standard Pass',
         '100% Pass or Money-Back Guarantee',
-        'Offline PDF study summaries',
-        'Pharmacology flashcard decks',
-        'Clinical math cheat sheets',
-        'Priority educator ticket reviews',
+        'Offline PDF study summaries & cheat sheets',
+        'High-alert pharmacology flashcards deck',
+        'Dosage calculation & clinical math drill suite',
+        'Personalized 1-on-1 remediation study plan',
+        'Priority educator support with <2h response',
       ],
       popular: false,
-      cta: 'Get 180-Day Pass',
+      cta: 'Get 180-Day Guarantee',
+      badge: 'Pass Guarantee',
     },
   ];
 
-  const handleSubscribe = (planId: string) => {
+  const currentPlan = plans.find((p) => p.id === chosenPlanId) || plans[1];
+
+  // Calculate pricing with promo
+  const calculateTotal = () => {
+    if (currentPlan.rawPrice === 0) return 0;
+    let base = currentPlan.rawPrice;
+    if (appliedPromo) {
+      if (appliedPromo.type === 'fixed') {
+        base = Math.max(0, base - appliedPromo.discount);
+      } else {
+        base = Math.max(0, Math.round(base * (1 - appliedPromo.discount / 100)));
+      }
+    }
+    return base;
+  };
+
+  const handleApplyPromo = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPromoError('');
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+
+    if (code === 'PASS2026' || code === 'NURSE2026') {
+      setAppliedPromo({ code, discount: 20, type: 'fixed' });
+    } else if (code === 'FUTURENURSE') {
+      setAppliedPromo({ code, discount: 20, type: 'percent' });
+    } else if (code === 'HERO25') {
+      setAppliedPromo({ code, discount: 25, type: 'fixed' });
+    } else {
+      setPromoError('Invalid coupon code. Try PASS2026 or FUTURENURSE');
+    }
+  };
+
+  const handleSelectPlan = (planId: string) => {
+    setChosenPlanId(planId);
     if (planId === 'trial') {
       onClose();
       onOpenSignUp();
     } else {
-      setIsSuccess(true);
-      setTimeout(() => {
-        setIsSuccess(false);
-        onClose();
-        onOpenSignUp();
-      }, 1500);
+      setStep('checkout');
     }
+  };
+
+  // Card number auto-spacing
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').substring(0, 16);
+    const formatted = raw.replace(/(\d{4})(?=\d)/g, '$1 ');
+    setCardNumber(formatted);
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, '').substring(0, 4);
+    if (raw.length >= 3) {
+      setCardExpiry(`${raw.slice(0, 2)}/${raw.slice(2)}`);
+    } else {
+      setCardExpiry(raw);
+    }
+  };
+
+  const handleCompleteCheckout = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+
+    setTimeout(() => {
+      setIsProcessing(false);
+      const receiptId = `EPP-${Math.random().toString(36).substring(2, 8).toUpperCase()}-${Date.now().toString().slice(-4)}`;
+      const planRecord: PurchasedPlan = {
+        id: currentPlan.id,
+        name: currentPlan.name,
+        price: `$${calculateTotal()}`,
+        exam: selectedExam,
+        period: currentPlan.period,
+        purchasedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        receiptId,
+      };
+
+      setPurchasedPlan(planRecord);
+      setStep('confirmation');
+
+      if (onPlanPurchased) {
+        onPlanPurchased(planRecord);
+      }
+    }, 1200);
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto border border-stone-200 shadow-2xl p-6 sm:p-10 animate-in zoom-in-95 duration-200"
+        className="bg-white rounded-3xl max-w-4xl w-full max-h-[92vh] overflow-y-auto border border-stone-200 shadow-2xl p-5 sm:p-8 animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between pb-6 border-b border-stone-100">
+        {/* Top Header */}
+        <div className="flex items-start justify-between pb-5 border-b border-stone-100">
           <div>
-            <span className="text-xs font-bold uppercase tracking-widest text-[#c4553a] bg-[#c4553a]/10 px-3 py-1 rounded-full">
-              Subscription Plans
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#c4553a] bg-[#c4553a]/10 px-3 py-1 rounded-full">
+                {step === 'select' ? 'Subscription Plans' : step === 'checkout' ? 'Secure Checkout' : 'Enrollment Confirmed'}
+              </span>
+              <span className="text-xs text-stone-500 font-medium hidden sm:inline-flex items-center gap-1">
+                <ShieldCheck className="h-3.5 w-3.5 text-[#2d5a4a]" /> 256-bit Encrypted
+              </span>
+            </div>
             <h3 className="text-2xl sm:text-3xl font-bold text-stone-900 mt-2 font-serif">
-              Simple, Transparent Pricing
+              {step === 'select' && 'Pass Your Nursing Board Exam on First Attempt'}
+              {step === 'checkout' && `Complete Enrollment for ${currentPlan.name}`}
+              {step === 'confirmation' && 'Welcome to EliteProctorPrep Pro!'}
             </h3>
-            <p className="text-sm text-stone-600 mt-1">
-              Select your targeted exam and pass with confidence on your first try.
+            <p className="text-xs sm:text-sm text-stone-600 mt-1">
+              {step === 'select' && 'Transparent, affordable pricing built for high-stakes nursing & health sciences candidates.'}
+              {step === 'checkout' && `Target Exam: ${selectedExam} • Instant access to full 30,000+ question bank.`}
+              {step === 'confirmation' && `Receipt & study license generated for ${selectedExam}.`}
             </p>
           </div>
           <button
@@ -109,93 +245,452 @@ export const PlansModal: React.FC<PlansModalProps> = ({ onClose, onOpenSignUp })
           </button>
         </div>
 
-        {/* Exam Selection Dropdown */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#faf7f2] rounded-2xl border border-stone-200">
-          <label className="text-xs sm:text-sm font-semibold text-stone-800">
-            Choose your target exam:
-          </label>
-          <select
-            value={selectedExam}
-            onChange={(e) => setSelectedExam(e.target.value)}
-            className="w-full sm:w-auto px-4 py-2 bg-white border border-stone-200 rounded-xl text-sm font-medium text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30"
-          >
-            {EXAM_TRACKS.map((exam) => (
-              <option key={exam.id} value={exam.name}>
-                {exam.name} ({exam.badge})
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {isSuccess ? (
-          <div className="py-16 text-center space-y-4">
-            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-              <Check className="h-8 w-8" />
-            </div>
-            <h4 className="text-2xl font-bold text-stone-900">Plan Selected!</h4>
-            <p className="text-sm text-stone-600">
-              Redirecting you to create your free student account for {selectedExam}...
-            </p>
-          </div>
-        ) : (
-          /* Plans Grid */
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-            {plans.map((p) => (
-              <div
-                key={p.id}
-                className={`relative rounded-2xl p-6 border flex flex-col justify-between transition-all ${
-                  p.popular
-                    ? 'border-[#c4553a] bg-[#fffdf9] shadow-lg shadow-[#c4553a]/10 ring-2 ring-[#c4553a]'
-                    : 'border-stone-200 bg-white hover:border-stone-300 shadow-sm'
-                }`}
-              >
-                {p.popular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#c4553a] text-white text-[11px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
-                    <Sparkles className="h-3 w-3" /> Most Popular
-                  </div>
-                )}
-
+        {/* STEP 1: PLAN SELECTION */}
+        {step === 'select' && (
+          <div>
+            {/* Exam Selection Dropdown */}
+            <div className="mt-5 flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#faf7f2] rounded-2xl border border-stone-200">
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-[#c4553a]" />
                 <div>
-                  <h4 className="font-bold text-lg text-stone-900">{p.name}</h4>
-                  <p className="text-xs text-stone-500 mt-1 min-h-[32px]">{p.desc}</p>
-
-                  <div className="my-5">
-                    <span className="text-4xl font-extrabold text-stone-900 font-serif">
-                      {p.price}
-                    </span>
-                    <span className="text-xs text-stone-500 ml-1.5">{p.period}</span>
-                  </div>
-
-                  <ul className="space-y-2.5 text-xs text-stone-600 mb-6">
-                    {p.features.map((feat, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <Check className="h-4 w-4 text-[#2d5a4a] shrink-0 mt-0.5" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="text-xs sm:text-sm font-bold text-stone-900">Choose your candidate exam track:</div>
+                  <div className="text-[11px] text-stone-500">Includes exam-specific NGN clinical scenarios & test plan blueprints</div>
                 </div>
+              </div>
+              <select
+                value={selectedExam}
+                onChange={(e) => setSelectedExam(e.target.value)}
+                className="w-full sm:w-auto px-4 py-2 bg-white border border-stone-200 rounded-xl text-sm font-semibold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30"
+              >
+                {EXAM_TRACKS.map((exam) => (
+                  <option key={exam.id} value={exam.name}>
+                    {exam.name} ({exam.badge})
+                  </option>
+                ))}
+              </select>
+            </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleSubscribe(p.id)}
-                  className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-sm ${
+            {/* Plans Grid */}
+            <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-5">
+              {plans.map((p) => (
+                <div
+                  key={p.id}
+                  className={`relative rounded-2xl p-6 border flex flex-col justify-between transition-all ${
                     p.popular
-                      ? 'bg-[#c4553a] hover:bg-[#8b3a2f] text-white shadow-md shadow-[#c4553a]/30'
-                      : 'bg-stone-900 hover:bg-stone-800 text-white'
+                      ? 'border-[#c4553a] bg-[#fffdf9] shadow-lg shadow-[#c4553a]/10 ring-2 ring-[#c4553a]'
+                      : 'border-stone-200 bg-white hover:border-stone-300 shadow-sm'
                   }`}
                 >
-                  {p.cta}
-                </button>
+                  {p.popular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#c4553a] text-white text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-wider shadow-sm flex items-center gap-1">
+                      <Sparkles className="h-3 w-3" /> Most Popular
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-bold text-base text-stone-900">{p.name}</h4>
+                      {p.id === '180-day' && (
+                        <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full">
+                          Pass Guarantee
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-stone-500 mt-1 min-h-[32px]">{p.desc}</p>
+
+                    <div className="my-4">
+                      <span className="text-3xl sm:text-4xl font-extrabold text-stone-900 font-serif">
+                        {p.price}
+                      </span>
+                      <span className="text-xs text-stone-500 ml-1.5">{p.period}</span>
+                    </div>
+
+                    <ul className="space-y-2 text-xs text-stone-600 mb-6">
+                      {p.features.map((feat, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                          <Check className="h-3.5 w-3.5 text-[#2d5a4a] shrink-0 mt-0.5" />
+                          <span className="leading-snug">{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPlan(p.id)}
+                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-sm ${
+                      p.popular
+                        ? 'bg-[#c4553a] hover:bg-[#8b3a2f] text-white shadow-md shadow-[#c4553a]/30'
+                        : 'bg-stone-900 hover:bg-stone-800 text-white'
+                    }`}
+                  >
+                    {p.cta}
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Special Promo Notice */}
+            <div className="mt-6 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2.5">
+                <Tag className="h-4 w-4 text-amber-700" />
+                <span className="text-xs text-amber-900 font-medium">
+                  Use coupon code <strong className="font-bold text-amber-950 font-mono">PASS2026</strong> at checkout for $20 off!
+                </span>
               </div>
-            ))}
+              <span className="text-[11px] text-amber-800 font-semibold">Limited seasonal test intake offer</span>
+            </div>
           </div>
         )}
 
-        {/* Guarantee Banner */}
-        <div className="mt-8 pt-6 border-t border-stone-100 flex items-center justify-center gap-2 text-xs text-stone-500">
+        {/* STEP 2: CHECKOUT DRAWER */}
+        {step === 'checkout' && (
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={() => setStep('select')}
+              className="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1.5 mb-5 cursor-pointer font-medium"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" /> Back to plan choices
+            </button>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              {/* Left Column: Payment Form */}
+              <div className="lg:col-span-7 space-y-6">
+                {/* Payment Method Selector */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-2">
+                    Select Payment Method
+                  </label>
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('card')}
+                      className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        paymentMethod === 'card'
+                          ? 'border-[#c4553a] bg-[#fffdf9] text-[#c4553a] shadow-xs'
+                          : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
+                      }`}
+                    >
+                      <CreditCard className="h-4 w-4" />
+                      <span>Credit Card</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('express')}
+                      className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        paymentMethod === 'express'
+                          ? 'border-[#c4553a] bg-[#fffdf9] text-[#c4553a] shadow-xs'
+                          : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
+                      }`}
+                    >
+                      <Zap className="h-4 w-4 text-amber-600" />
+                      <span>Apple / GPay</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMethod('paypal')}
+                      className={`p-3 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        paymentMethod === 'paypal'
+                          ? 'border-[#c4553a] bg-[#fffdf9] text-[#c4553a] shadow-xs'
+                          : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'
+                      }`}
+                    >
+                      <ShieldCheck className="h-4 w-4 text-blue-600" />
+                      <span>PayPal</span>
+                    </button>
+                  </div>
+                </div>
+
+                <form onSubmit={handleCompleteCheckout} className="space-y-4">
+                  {/* Student Email */}
+                  <div>
+                    <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                      Account / Access Email
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={studentEmail}
+                      onChange={(e) => setStudentEmail(e.target.value)}
+                      placeholder="nurse.candidate@university.edu"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30"
+                    />
+                    <p className="text-[11px] text-stone-500 mt-1">Your pro license and simulated CAT exams will be bound to this email.</p>
+                  </div>
+
+                  {paymentMethod === 'card' && (
+                    <div className="space-y-3.5 pt-2">
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                          Cardholder Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={cardholderName}
+                          onChange={(e) => setCardholderName(e.target.value)}
+                          placeholder="Kelly Muthomi"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                          Card Number
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            required
+                            value={cardNumber}
+                            onChange={handleCardNumberChange}
+                            placeholder="4532 •••• •••• ••••"
+                            className="w-full pl-3.5 pr-10 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30 font-mono"
+                          />
+                          <Lock className="absolute right-3.5 top-3 h-4 w-4 text-stone-400" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                            Expires
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={cardExpiry}
+                            onChange={handleExpiryChange}
+                            placeholder="MM/YY"
+                            className="w-full px-3 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30 font-mono text-center"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                            CVC / CVV
+                          </label>
+                          <input
+                            type="password"
+                            required
+                            maxLength={4}
+                            value={cardCvc}
+                            onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, ''))}
+                            placeholder="123"
+                            className="w-full px-3 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30 font-mono text-center"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+                            ZIP / Postal
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={cardZip}
+                            onChange={(e) => setCardZip(e.target.value.substring(0, 7))}
+                            placeholder="94105"
+                            className="w-full px-3 py-2.5 rounded-xl border border-stone-200 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30 text-center"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === 'express' && (
+                    <div className="p-6 bg-stone-50 rounded-2xl border border-stone-200 text-center space-y-3">
+                      <Zap className="h-8 w-8 text-amber-500 mx-auto" />
+                      <div className="text-sm font-bold text-stone-900">1-Touch Express Checkout</div>
+                      <p className="text-xs text-stone-600 max-w-sm mx-auto">
+                        Authenticate instantly with FaceID / TouchID or your default Google Pay account for zero typing.
+                      </p>
+                    </div>
+                  )}
+
+                  {paymentMethod === 'paypal' && (
+                    <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-200 text-center space-y-3">
+                      <ShieldCheck className="h-8 w-8 text-blue-600 mx-auto" />
+                      <div className="text-sm font-bold text-stone-900">PayPal Buyer Protection</div>
+                      <p className="text-xs text-stone-600 max-w-sm mx-auto">
+                        Complete your purchase safely with PayPal Balance, Bank transfer, or Pay in 4 installments.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Submit Button */}
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={isProcessing}
+                      className="w-full py-3.5 px-6 rounded-xl text-sm font-bold text-white bg-[#c4553a] hover:bg-[#8b3a2f] shadow-lg shadow-[#c4553a]/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>Authorizing Secure Enrollment...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span>Pay ${calculateTotal()} &amp; Unlock Full Question Bank</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </>
+                      )}
+                    </button>
+                    <div className="text-center mt-2.5 text-[11px] text-stone-500 flex items-center justify-center gap-1">
+                      <Lock className="h-3 w-3 text-stone-400" />
+                      <span>Instant account activation • No hidden recurring charges</span>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              {/* Right Column: Order Summary & Coupon */}
+              <div className="lg:col-span-5 bg-[#faf7f2] p-5 rounded-2xl border border-stone-200 space-y-5">
+                <div>
+                  <h4 className="font-bold text-stone-900 text-sm">Order Summary</h4>
+                  <div className="mt-3 p-3.5 bg-white rounded-xl border border-stone-200/80 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-xs text-stone-900">{currentPlan.name}</span>
+                      <span className="font-mono font-bold text-xs text-stone-900">${currentPlan.rawPrice}</span>
+                    </div>
+                    <div className="text-[11px] text-stone-500 flex items-center justify-between">
+                      <span>Exam Blueprint:</span>
+                      <span className="font-medium text-stone-800">{selectedExam}</span>
+                    </div>
+                    <div className="text-[11px] text-stone-500 flex items-center justify-between">
+                      <span>Access Duration:</span>
+                      <span className="font-medium text-stone-800">{currentPlan.period}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Promo Code Form */}
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                    Have a Promo Code?
+                  </label>
+                  <form onSubmit={handleApplyPromo} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => setPromoInput(e.target.value)}
+                      placeholder="e.g. PASS2026"
+                      className="flex-1 px-3 py-2 rounded-xl border border-stone-200 bg-white text-xs text-stone-900 uppercase font-mono focus:outline-none focus:ring-2 focus:ring-[#c4553a]/30"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      Apply
+                    </button>
+                  </form>
+                  {promoError && <p className="text-[11px] text-rose-600 mt-1">{promoError}</p>}
+                  {appliedPromo && (
+                    <div className="mt-2 text-xs text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg flex items-center justify-between">
+                      <span>Coupon &quot;{appliedPromo.code}&quot; applied!</span>
+                      <span className="font-bold">
+                        {appliedPromo.type === 'fixed' ? `-$${appliedPromo.discount}` : `-${appliedPromo.discount}%`}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Pricing Calculation breakdown */}
+                <div className="pt-3 border-t border-stone-200/80 space-y-2 text-xs">
+                  <div className="flex justify-between text-stone-600">
+                    <span>Subtotal:</span>
+                    <span className="font-mono">${currentPlan.rawPrice}.00</span>
+                  </div>
+                  {appliedPromo && (
+                    <div className="flex justify-between text-emerald-700 font-semibold">
+                      <span>Discount:</span>
+                      <span className="font-mono">-${currentPlan.rawPrice - calculateTotal()}.00</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-stone-600">
+                    <span>Tax &amp; Regulatory Fees:</span>
+                    <span className="font-mono text-emerald-700 font-semibold">$0.00</span>
+                  </div>
+                  <div className="pt-2 border-t border-stone-200 flex justify-between text-sm font-bold text-stone-900">
+                    <span>Total Due Now:</span>
+                    <span className="text-xl font-bold font-serif text-[#c4553a]">${calculateTotal()}.00</span>
+                  </div>
+                </div>
+
+                {/* Pass Guarantee Seal */}
+                <div className="p-3 bg-white rounded-xl border border-emerald-200/70 text-xs text-stone-700 flex items-start gap-2.5">
+                  <ShieldCheck className="h-5 w-5 text-[#2d5a4a] shrink-0 mt-0.5" />
+                  <div>
+                    <div className="font-bold text-stone-900">100% Pass or Money-Back Guarantee</div>
+                    <div className="text-[11px] text-stone-500 mt-0.5">
+                      Score at least 75% on our computer adaptive mock exams; if you do not pass your official board exam, receive an unconditional full refund.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: CONFIRMATION / RECEIPT */}
+        {step === 'confirmation' && purchasedPlan && (
+          <div className="py-8 text-center space-y-5 animate-in zoom-in-95 duration-200">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
+              <Check className="h-8 w-8 stroke-[3]" />
+            </div>
+
+            <div>
+              <span className="text-xs font-bold uppercase tracking-widest text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">
+                Active Pro Subscription
+              </span>
+              <h4 className="text-2xl sm:text-3xl font-bold text-stone-900 font-serif mt-2">
+                Congratulations! You are officially enrolled.
+              </h4>
+              <p className="text-xs sm:text-sm text-stone-600 max-w-lg mx-auto mt-1">
+                Your full access pass for <strong>{purchasedPlan.exam}</strong> is now live. Complete access to 30,000+ questions, adaptive mock tests, and NGN clinical cases has been activated.
+              </p>
+            </div>
+
+            {/* Receipt Summary Card */}
+            <div className="max-w-md mx-auto bg-[#faf7f2] p-5 rounded-2xl border border-stone-200 text-left text-xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-stone-200">
+                <span className="text-stone-500">Order Reference:</span>
+                <span className="font-mono font-bold text-stone-900">{purchasedPlan.receiptId}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500">Enrolled Plan:</span>
+                <span className="font-bold text-stone-900">{purchasedPlan.name}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500">Target Board:</span>
+                <span className="font-bold text-[#c4553a]">{purchasedPlan.exam}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500">Amount Paid:</span>
+                <span className="font-bold text-emerald-700">{purchasedPlan.price} (One-Time)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-stone-500">Valid Through:</span>
+                <span className="font-medium text-stone-800">{purchasedPlan.period} from today</span>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#c4553a] hover:bg-[#8b3a2f] text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+              >
+                Access My Study Portal Now →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Footer Guarantee */}
+        <div className="mt-8 pt-5 border-t border-stone-100 flex items-center justify-center gap-2 text-xs text-stone-500">
           <ShieldCheck className="h-4 w-4 text-[#2d5a4a]" />
-          <span>Secure 256-bit SSL encrypted checkout &bull; Cancel anytime</span>
+          <span>Compliant with NCSBN Test Plans &bull; 256-bit SSL encrypted checkout &bull; Instant activation</span>
         </div>
       </div>
     </div>
